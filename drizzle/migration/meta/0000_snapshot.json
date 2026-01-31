@@ -1,0 +1,63 @@
+{
+  "version": "5",
+  "dialect": "mysql",
+  "id": "5141a6e7-d2a9-4d1d-9ba6-e170d0f847ca",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "short_links": {
+      "name": "short_links",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "short_code": {
+          "name": "short_code",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "url": {
+          "name": "url",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "short_links_id": {
+          "name": "short_links_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "short_links_short_code_unique": {
+          "name": "short_links_short_code_unique",
+          "columns": [
+            "short_code"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    }
+  },
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {},
+    "indexes": {}
+  }
+}

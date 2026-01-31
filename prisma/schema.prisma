@@ -1,0 +1,14 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model short_links {
+  id         Int    @id @default(autoincrement())
+  short_code String @unique(map: "short_code") @db.VarChar(20)
+  url        String @db.VarChar(255)
+}

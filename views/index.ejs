@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div>
+        <h1>URL Shortener</h1>
+        <form action="/" method="post" id="shorten-form">
+            <div>
+                <label for="url">Enter URL:</label>
+                <input type="url" name="url" id="url" placeholder="https://example.com" required>
+            </div>
+            <div>
+                <label for="shortCode">Enter custom short code (optional):</label>
+                <input type="text" name="shortCode" id="shortCode" placeholder="my-custom-link">
+            </div>
+            <button type="submit">Shorten</button>
+        </form>
+
+        <h2>Your Shortened URLs</h2>
+        <ul id="shortened-urls">
+            <% links.map(({short_code,url})=>{ %>
+                <% url=url.length>=30 ? `${url.slice(0,30)}...`: url; %>
+                    <li>
+                        <a href="/<%= short_code %>" target="_blank">
+                            <%= host %>/<%= short_code %>
+                        </a> - <%= url%>
+                    </li>
+                    <% }) %>
+        </ul>
+    </div>
+    <!-- No need of script -->
+    <!-- <script src="./index.js"></script> -->
+</body>
+
+</html>
