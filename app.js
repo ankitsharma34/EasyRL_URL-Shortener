@@ -2,6 +2,8 @@ import path from "path";
 import { env } from "./config/env.js";
 import express from "express";
 import { homePageRouter } from "./routers/homePage.route.js";
+import { authRoute } from "./routers/auth.routes.js";
+import cookieParser from "cookie-parser";
 // !mongoose
 // import { connectDB } from "./config/db-client.js";
 
@@ -17,7 +19,8 @@ app.set("view engine", "ejs");
 app.set("views", viewsPath);
 
 // --- SERVER LOGIC ---
-
+app.use(cookieParser());
+app.use(authRoute);
 app.use(homePageRouter);
 
 try {

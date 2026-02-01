@@ -1,5 +1,5 @@
 {
-  "name": "url-shortner",
+  "name": "url-shortener",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -17,6 +17,9 @@
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.3.0",
     "@prisma/client": "^7.3.0",
+    "argon2": "^0.44.0",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "ejs": "^3.1.10",

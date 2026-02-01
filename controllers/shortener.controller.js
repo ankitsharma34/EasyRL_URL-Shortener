@@ -24,6 +24,15 @@ export const getHomePage = async (req, res) => {
     // !mongoose
     // const links = await urls.find();
 
+    // let isLoggedIn = req.headers.cookie;
+    // isLoggedIn = Boolean(
+    //   isLoggedIn
+    //     ?.split(";")
+    //     ?.find((cookie) => cookie.trim().startsWith("isLoggedIn"))
+    //     ?.split("=")[1],
+    // );
+    let isLoggedIn = req.cookies.isLoggedIn; // * cookie-parser
+    console.log("~ getHomePage ~isLoggedIn:", isLoggedIn);
     return res.render("index", { links, host: req.host });
   } catch (error) {
     console.error(error);
