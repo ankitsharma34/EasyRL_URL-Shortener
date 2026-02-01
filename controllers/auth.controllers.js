@@ -1,5 +1,6 @@
 import {
   createUser,
+  generateToken,
   getUserByEmail,
   hashPassword,
   verifyPassword,
@@ -37,6 +38,19 @@ export const postLogin = async (req, res) => {
 
   // !cookie
   //   res.setHeader("Set-Cookie", "isLoggedIn=true; path=/;");
-  res.cookie("isLoggedIn", true); //-> cookie parser and express automatically set the path to / by default
+  // res.cookie("isLoggedIn", true); //-> cookie parser and express automatically set the path to / by default
+
+  // ! JWT
+  const token = generateToken({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  });
+  res.cookie("access_token", token);
   return res.redirect("/");
+};
+
+export const getMe = (req, res) => {
+  if (!req.user) return res.send("Not logged in");
+  return res.send(`<h1> ${req.user.name} - ${req.user.email}</h1>`);
 };

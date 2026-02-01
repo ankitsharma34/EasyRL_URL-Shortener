@@ -24,6 +24,7 @@
     "drizzle-orm": "^0.45.1",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.0.0",
     "mongoose": "^9.1.5",
     "mysql2": "^3.16.2",

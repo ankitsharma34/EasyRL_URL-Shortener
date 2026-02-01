@@ -18,5 +18,8 @@ export const env = z
 
     // ! drizzle
     DATABASE_URL: z.string(),
+
+    // ! JWT
+    JWT_SECRET: z.string(),
   })
   .parse(process.env);

@@ -31,8 +31,11 @@ export const getHomePage = async (req, res) => {
     //     ?.find((cookie) => cookie.trim().startsWith("isLoggedIn"))
     //     ?.split("=")[1],
     // );
-    let isLoggedIn = req.cookies.isLoggedIn; // * cookie-parser
-    console.log("~ getHomePage ~isLoggedIn:", isLoggedIn);
+
+    // ! cookie
+    // let isLoggedIn = req.cookies.isLoggedIn; // * cookie-parser
+    // return res.render("index", { links, host: req.host, isLoggedIN });
+
     return res.render("index", { links, host: req.host });
   } catch (error) {
     console.error(error);

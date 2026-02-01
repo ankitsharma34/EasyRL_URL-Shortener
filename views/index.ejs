@@ -10,6 +10,11 @@
 
 <body>
     <%- include("./partials/header") %>
+    <% if(user) {%>
+        <h2>You are logged in</h2>
+    <% } else { %>
+        <h2>You are not logged in</h2>
+        <% } %>
         <div>
             <h1>URL Shortener</h1>
             <form action="/" method="post" id="shorten-form">

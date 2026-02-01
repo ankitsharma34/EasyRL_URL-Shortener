@@ -3,12 +3,8 @@ import { db } from "../config/db.js";
 import { usersTable } from "../drizzle/schema.js";
 import bcrypt from "bcrypt";
 import argon2 from "argon2";
-/**
- *! bcrypt only works till 72 character
- *! if 1st 72 characters of password is same, the compare function will return true
- *
- * * use argon 2
- */
+import jwt from "jsonwebtoken";
+import { env } from "../config/env.js";
 
 export const getUserByEmail = async (email) => {
   const [user] = await db
@@ -31,4 +27,16 @@ export const hashPassword = async (password) => {
 export const verifyPassword = async (password, hashedPassword) => {
   // return await bcrypt.compare(password, hashedPassword);
   return await argon2.verify(hashedPassword, password);
+};
+
+// ! JWT
+
+export const generateToken = ({ id, name, email }) => {
+  return jwt.sign({ id, name, email }, env.JWT_SECRET, {
+    expiresIn: "30d",
+  });
+};
+
+export const verifyJWTToken = (token) => {
+  return jwt.verify(token, env.JWT_SECRET);
 };

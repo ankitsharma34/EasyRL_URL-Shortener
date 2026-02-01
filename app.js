@@ -4,6 +4,8 @@ import express from "express";
 import { homePageRouter } from "./routers/homePage.route.js";
 import { authRoute } from "./routers/auth.routes.js";
 import cookieParser from "cookie-parser";
+import { verifyAuthentication } from "./middlewares/verify-auth.middlewares.js";
+import { setUser } from "./middlewares/setUsers.middleware.js";
 // !mongoose
 // import { connectDB } from "./config/db-client.js";
 
@@ -20,6 +22,8 @@ app.set("views", viewsPath);
 
 // --- SERVER LOGIC ---
 app.use(cookieParser());
+app.use(verifyAuthentication);
+app.use(setUser);
 app.use(authRoute);
 app.use(homePageRouter);
 
