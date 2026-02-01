@@ -19,8 +19,10 @@ import {
 
 export const getHomePage = async (req, res) => {
   try {
+    if (!req.user) return res.redirect("/login");
+
     // !mongodb & mysql &  prisma & drizzle
-    const links = await loadLinks();
+    const links = await loadLinks(req.user.id);
     // !mongoose
     // const links = await urls.find();
 
@@ -45,6 +47,7 @@ export const getHomePage = async (req, res) => {
 
 export const postURL = async (req, res) => {
   try {
+    if (!req.user) return res.redirect("/login");
     const { url, shortCode } = req.body;
     const finalShortCode = shortCode || crypto.randomBytes(4).toString("hex");
 
@@ -53,7 +56,7 @@ export const postURL = async (req, res) => {
     // ! mongoose
     // const links = await urls.find();
 
-    if (links.find((link) => link.shortCode === finalShortCode)) {
+    if (links.find((link) => link.short_code === finalShortCode)) {
       return res.status(400).json({
         success: false,
         message: "Short code already exists. Please choose another.",
@@ -64,7 +67,7 @@ export const postURL = async (req, res) => {
     // links[finalShortCode] = url;
     // await saveLinks(links);
     // !Mongodb & mysql & prisma & drizzle
-    await saveLinks({ url, finalShortCode });
+    await saveLinks({ url, finalShortCode, userId: req.user.id });
     // ! mongoose
     // await urls.create({ url, shortCode: finalShortCode });
 
