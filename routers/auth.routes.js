@@ -3,6 +3,7 @@ import {
   getLoginPage,
   getMe,
   getRegisterPage,
+  logoutUser,
   postLogin,
   postRegister,
 } from "../controllers/auth.controllers.js";
@@ -16,5 +17,6 @@ const router = Router();
 router.route("/register").get(getRegisterPage).post(postRegister);
 router.route("/login").get(getLoginPage).post(postLogin);
 router.route("/me").get(getMe);
+router.route("/logout").get(logoutUser);
 
 export const authRoute = router;

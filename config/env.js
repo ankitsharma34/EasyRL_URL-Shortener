@@ -21,5 +21,8 @@ export const env = z
 
     // ! JWT
     JWT_SECRET: z.string(),
+
+    // ! express-session
+    SESSION_SECRET: z.string(),
   })
   .parse(process.env);

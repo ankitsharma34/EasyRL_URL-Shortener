@@ -7,13 +7,18 @@ import {
 } from "../services/auth.services.js";
 
 export const getRegisterPage = (req, res) => {
-  return res.render("auth/register");
+  if (req.user) return res.redirect("/");
+  return res.render("auth/register", { errors: req.flash("errors") });
 };
 
 export const postRegister = async (req, res) => {
+  if (req.user) return res.redirect("/");
   const { name, email, password } = req.body;
   const userExists = await getUserByEmail(email);
-  if (userExists) return res.redirect("/register");
+  if (userExists) {
+    req.flash("errors", "User already exists.");
+    return res.redirect("/register");
+  }
 
   const hashedPassword = await hashPassword(password);
   const [user] = await createUser({ name, email, password: hashedPassword });
@@ -22,19 +27,27 @@ export const postRegister = async (req, res) => {
 };
 
 export const getLoginPage = (req, res) => {
-  return res.render("auth/login");
+  if (req.user) return res.redirect("/");
+  return res.render("auth/login", { errors: req.flash("errors") });
 };
 
 export const postLogin = async (req, res) => {
+  if (req.user) return res.redirect("/");
   const { email, password } = req.body;
   const user = await getUserByEmail(email);
-  if (!user) res.redirect("/login");
+  if (!user) {
+    req.flash("errors", "Invalid email or password.");
+    res.redirect("/login");
+  }
 
   //* format: bcrypt.compare(plainTextPassword,hashedPassword)
   const isPasswordValid = await verifyPassword(password, user.password);
 
   // if (user.password !== password) return res.redirect("/login");
-  if (!isPasswordValid) return res.redirect("/login");
+  if (!isPasswordValid) {
+    req.flash("errors", "Invalid email or password.");
+    return res.redirect("/login");
+  }
 
   // !cookie
   //   res.setHeader("Set-Cookie", "isLoggedIn=true; path=/;");
@@ -53,4 +66,8 @@ export const postLogin = async (req, res) => {
 export const getMe = (req, res) => {
   if (!req.user) return res.send("Not logged in");
   return res.send(`<h1> ${req.user.name} - ${req.user.email}</h1>`);
+};
+export const logoutUser = (req, res) => {
+  res.clearCookie("access_token");
+  res.redirect("/login");
 };

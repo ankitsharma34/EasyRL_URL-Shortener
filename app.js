@@ -6,6 +6,8 @@ import { authRoute } from "./routers/auth.routes.js";
 import cookieParser from "cookie-parser";
 import { verifyAuthentication } from "./middlewares/verify-auth.middlewares.js";
 import { setUser } from "./middlewares/setUsers.middleware.js";
+import session from "express-session";
+import flash from "connect-flash";
 // !mongoose
 // import { connectDB } from "./config/db-client.js";
 
@@ -22,6 +24,14 @@ app.set("views", viewsPath);
 
 // --- SERVER LOGIC ---
 app.use(cookieParser());
+app.use(
+  session({
+    secret: env.SESSION_SECRET,
+    resave: true,
+    saveUninitialized: false,
+  }),
+);
+app.use(flash());
 app.use(verifyAuthentication);
 app.use(setUser);
 app.use(authRoute);
