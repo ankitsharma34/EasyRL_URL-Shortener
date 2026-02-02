@@ -5,6 +5,10 @@ import {
   hashPassword,
   verifyPassword,
 } from "../services/auth.services.js";
+import {
+  loginUserSchema,
+  registerUserSchema,
+} from "../validators/auth.validator.js";
 
 export const getRegisterPage = (req, res) => {
   if (req.user) return res.redirect("/");
@@ -13,7 +17,18 @@ export const getRegisterPage = (req, res) => {
 
 export const postRegister = async (req, res) => {
   if (req.user) return res.redirect("/");
-  const { name, email, password } = req.body;
+  // const { name, email, password } = req.body;
+
+  // !zod validation
+  const result = registerUserSchema.safeParse(req.body);
+  if (!result.success) {
+    const issue = result.error.issues[0];
+    const errorMessage = issue?.message || "Invalid input";
+    req.flash("errors", errorMessage);
+    return res.redirect("/register");
+  }
+  const { name, email, password } = result.data;
+
   const userExists = await getUserByEmail(email);
   if (userExists) {
     req.flash("errors", "User already exists.");
@@ -23,7 +38,7 @@ export const postRegister = async (req, res) => {
   const hashedPassword = await hashPassword(password);
   const [user] = await createUser({ name, email, password: hashedPassword });
   console.log(user);
-  res.redirect("/login");
+  return res.redirect("/login");
 };
 
 export const getLoginPage = (req, res) => {
@@ -33,11 +48,22 @@ export const getLoginPage = (req, res) => {
 
 export const postLogin = async (req, res) => {
   if (req.user) return res.redirect("/");
-  const { email, password } = req.body;
+  // const { email, password } = req.body;
+
+  // ! zod validation
+  const result = loginUserSchema.safeParse(req.body);
+  if (!result.success) {
+    const issue = result.error.issues[0];
+    const errorMessage = issue?.message || "Invalid Input";
+    req.flash("errors", errorMessage);
+    return res.redirect("/login");
+  }
+  const { email, password } = result.data;
+
   const user = await getUserByEmail(email);
   if (!user) {
     req.flash("errors", "Invalid email or password.");
-    res.redirect("/login");
+    return res.redirect("/login");
   }
 
   //* format: bcrypt.compare(plainTextPassword,hashedPassword)
@@ -69,5 +95,5 @@ export const getMe = (req, res) => {
 };
 export const logoutUser = (req, res) => {
   res.clearCookie("access_token");
-  res.redirect("/login");
+  return res.redirect("/login");
 };
