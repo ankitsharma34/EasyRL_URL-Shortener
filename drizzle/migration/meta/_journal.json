@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1769866609392,
-      "tag": "0000_first_skullbuster",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "5",
-      "when": 1769956445036,
-      "tag": "0001_wooden_gladiator",
+      "when": 1770289969128,
+      "tag": "0000_magical_black_tom",
       "breakpoints": true
     }
   ]

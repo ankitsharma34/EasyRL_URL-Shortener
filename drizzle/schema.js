@@ -1,8 +1,10 @@
 import { relations } from "drizzle-orm";
 import {
+  boolean,
   int,
   mysqlTable,
   serial,
+  text,
   timestamp,
   varchar,
 } from "drizzle-orm/mysql-core";
@@ -27,14 +29,38 @@ export const usersTable = mysqlTable("users", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
 
-// a user can have many short links
+//! Hybrid authentication
+// Session table
+export const sessionsTable = mysqlTable("sessions", {
+  id: int().autoincrement().primaryKey(),
+  userId: int("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  valid: boolean().default(true).notNull(),
+  userAgent: text("user_agent"),
+  /* User agent is a header sent by the client's browser or application in a HTTP request. It provides information about the device, operating system, browser  */
+  ip: varchar({ length: 255 }),
+  createdAt: timestamp("created-at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+});
+
+// a user can have many short links and many sessions
 export const usersRelation = relations(usersTable, ({ many }) => ({
   shortLink: many(shortLinkTable),
+  session: many(sessionsTable),
 }));
 // a short link belongs to a user
 export const shortLinkRelation = relations(shortLinkTable, ({ one }) => ({
   user: one(usersTable, {
     fields: [shortLinkTable.userId], // foreign key
+    references: [usersTable.id],
+  }),
+}));
+
+// a session belong to only one user
+export const sessionsRelation = relations(sessionsTable, ({ one }) => ({
+  user: one(usersTable, {
+    fields: [sessionsTable.id], //foreign key
     references: [usersTable.id],
   }),
 }));
