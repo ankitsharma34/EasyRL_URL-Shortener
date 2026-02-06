@@ -7,6 +7,7 @@ import {
   createAccessToken,
   createRefreshToken,
   createSession,
+  createSessionAndTokens,
   createUser,
   // generateToken,
   getUserByEmail,
@@ -50,27 +51,7 @@ export const postRegister = async (req, res) => {
   // return res.redirect("/login");
 
   // ! Auto login after registration
-  const session = await createSession(user.id, {
-    ip: req.clientIp,
-    userAgent: req.header["user-agent"],
-  });
-  const accessToken = createAccessToken({
-    id: user.id,
-    name: name,
-    email: email,
-    sessionId: session.id,
-  });
-  const refreshToken = createRefreshToken(session.id);
-
-  const baseConfig = { httpOnly: true, secure: true };
-  res.cookie("access_token", accessToken, {
-    ...baseConfig,
-    maxAge: ACCESS_TOKEN_EXPIRY,
-  });
-  res.cookie("refresh_token", refreshToken, {
-    ...baseConfig,
-    maxAge: REFRESH_TOKEN_EXPIRY,
-  });
+  await createSessionAndTokens({ req, res, user, name, email });
 
   return res.redirect("/");
 };
@@ -122,27 +103,7 @@ export const postLogin = async (req, res) => {
 
   // res.cookie("access_token", token);
   // !hybrid authentication
-  const session = await createSession(user.id, {
-    ip: req.clientIp,
-    userAgent: req.header["user-agent"],
-  });
-  const accessToken = createAccessToken({
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    sessionId: session.id,
-  });
-  const refreshToken = createRefreshToken(session.id);
-
-  const baseConfig = { httpOnly: true, secure: true };
-  res.cookie("access_token", accessToken, {
-    ...baseConfig,
-    maxAge: ACCESS_TOKEN_EXPIRY,
-  });
-  res.cookie("refresh_token", refreshToken, {
-    ...baseConfig,
-    maxAge: REFRESH_TOKEN_EXPIRY,
-  });
+  await createSessionAndTokens({ req, res, user });
 
   return res.redirect("/");
 };

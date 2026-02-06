@@ -115,3 +115,33 @@ export const refreshRefreshToken = async (refreshToken) => {
 export const clearUserSession = async (sessionId) => {
   return db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
 };
+
+export const createSessionAndTokens = async ({
+  req,
+  res,
+  user,
+  name,
+  email,
+}) => {
+  const session = await createSession(user.id, {
+    ip: req.clientIp,
+    userAgent: req.header["user-agent"],
+  });
+  const accessToken = createAccessToken({
+    id: user.id,
+    name: user.name || name,
+    email: user.email || email,
+    sessionId: session.id,
+  });
+  const refreshToken = createRefreshToken(session.id);
+
+  const baseConfig = { httpOnly: true, secure: true };
+  res.cookie("access_token", accessToken, {
+    ...baseConfig,
+    maxAge: ACCESS_TOKEN_EXPIRY,
+  });
+  res.cookie("refresh_token", refreshToken, {
+    ...baseConfig,
+    maxAge: REFRESH_TOKEN_EXPIRY,
+  });
+};
