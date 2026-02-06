@@ -1,6 +1,13 @@
 import {
+  ACCESS_TOKEN_EXPIRY,
+  REFRESH_TOKEN_EXPIRY,
+} from "../config/constants.js";
+import {
+  createAccessToken,
+  createRefreshToken,
+  createSession,
   createUser,
-  generateToken,
+  // generateToken,
   getUserByEmail,
   hashPassword,
   verifyPassword,
@@ -80,12 +87,36 @@ export const postLogin = async (req, res) => {
   // res.cookie("isLoggedIn", true); //-> cookie parser and express automatically set the path to / by default
 
   // ! JWT
-  const token = generateToken({
+  // const token = generateToken({
+  //   id: user.id,
+  //   name: user.name,
+  //   email: user.email,
+  // });
+
+  // res.cookie("access_token", token);
+  // !hybrid authentication
+  const session = await createSession(user.id, {
+    ip: req.clientIp,
+    userAgent: req.header["user-agent"],
+  });
+  const accessToken = createAccessToken({
     id: user.id,
     name: user.name,
     email: user.email,
+    sessionId: session.id,
   });
-  res.cookie("access_token", token);
+  const refreshToken = createRefreshToken(session.id);
+
+  const baseConfig = { httpOnly: true, secure: true };
+  res.cookie("access_token", accessToken, {
+    ...baseConfig,
+    maxAge: ACCESS_TOKEN_EXPIRY,
+  });
+  res.cookie("refresh_token", refreshToken, {
+    ...baseConfig,
+    maxAge: REFRESH_TOKEN_EXPIRY,
+  });
+
   return res.redirect("/");
 };
 

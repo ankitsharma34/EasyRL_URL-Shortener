@@ -1,13 +1,14 @@
-import path from "path";
-import { env } from "./config/env.js";
-import express from "express";
-import { homePageRouter } from "./routers/homePage.route.js";
-import { authRoute } from "./routers/auth.routes.js";
 import cookieParser from "cookie-parser";
-import { verifyAuthentication } from "./middlewares/verify-auth.middlewares.js";
-import { setUser } from "./middlewares/setUsers.middleware.js";
+import path from "path";
 import session from "express-session";
 import flash from "connect-flash";
+import express from "express";
+import requestIp from "request-ip";
+import { env } from "./config/env.js";
+import { homePageRouter } from "./routers/homePage.route.js";
+import { authRoute } from "./routers/auth.routes.js";
+import { verifyAuthentication } from "./middlewares/verify-auth.middlewares.js";
+import { setUser } from "./middlewares/setUsers.middleware.js";
 // !mongoose
 // import { connectDB } from "./config/db-client.js";
 
@@ -32,6 +33,7 @@ app.use(
   }),
 );
 app.use(flash());
+app.use(requestIp.mw());
 app.use(verifyAuthentication);
 app.use(setUser);
 app.use(authRoute);
