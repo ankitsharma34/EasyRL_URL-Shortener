@@ -111,3 +111,7 @@ export const refreshRefreshToken = async (refreshToken) => {
     console.error(error.message);
   }
 };
+
+export const clearUserSession = async (sessionId) => {
+  return db.delete(sessionsTable).where(eq(sessionsTable.id, sessionId));
+};
