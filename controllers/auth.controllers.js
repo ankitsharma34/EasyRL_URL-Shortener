@@ -9,8 +9,10 @@ import {
   createSession,
   createSessionAndTokens,
   createUser,
+  getAllShortLinks,
   // generateToken,
   getUserByEmail,
+  getUserById,
   hashPassword,
   verifyPassword,
 } from "../services/auth.services.js";
@@ -118,4 +120,22 @@ export const logoutUser = async (req, res) => {
   res.clearCookie("access_token");
   res.clearCookie("refresh_token");
   return res.redirect("/login");
+};
+
+// profile page
+export const getProfilePage = async (req, res) => {
+  if (!req.user) return res.send("User not logged in.");
+  const user = await getUserById(req.user.id);
+  if (!user) return res.redirect("/login");
+
+  const userShortLinks = await getAllShortLinks(user.id);
+  return res.render("auth/profile", {
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      createdAt: user.createdAt,
+      links: userShortLinks,
+    },
+  });
 };

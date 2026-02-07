@@ -4,7 +4,11 @@ import bcrypt from "bcrypt";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.js";
-import { sessionsTable, usersTable } from "../drizzle/schema.js";
+import {
+  sessionsTable,
+  shortLinkTable,
+  usersTable,
+} from "../drizzle/schema.js";
 import {
   ACCESS_TOKEN_EXPIRY,
   MILLISECONDS_PER_SECOND,
@@ -144,4 +148,11 @@ export const createSessionAndTokens = async ({
     ...baseConfig,
     maxAge: REFRESH_TOKEN_EXPIRY,
   });
+};
+
+export const getAllShortLinks = async (userId) => {
+  return await db
+    .select()
+    .from(shortLinkTable)
+    .where(eq(shortLinkTable.userId, userId));
 };
