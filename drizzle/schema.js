@@ -24,11 +24,7 @@ export const usersTable = mysqlTable("users", {
   id: int().autoincrement().primaryKey(),
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
-<<<<<<< HEAD
   isEmailValid: boolean("is_email_valid").default(false).notNull(),
-=======
-  isEmailValid: boolean("is_email_valid").$default(false).notNull(),
->>>>>>> edc5f6e5c0baaa9b3e5bce5d68c8202d5ded37f5
   password: varchar({ length: 255 }).notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
