@@ -1,7 +1,11 @@
 {
   "version": "5",
   "dialect": "mysql",
+<<<<<<< HEAD
   "id": "f6f2216f-17ff-4614-b2f5-757e6f19ce8f",
+=======
+  "id": "9c1769f4-c862-402c-b8b6-96b4e6bdd655",
+>>>>>>> edc5f6e5c0baaa9b3e5bce5d68c8202d5ded37f5
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "sessions": {
@@ -200,8 +204,12 @@
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
+<<<<<<< HEAD
           "autoincrement": false,
           "default": false
+=======
+          "autoincrement": false
+>>>>>>> edc5f6e5c0baaa9b3e5bce5d68c8202d5ded37f5
         },
         "password": {
           "name": "password",
