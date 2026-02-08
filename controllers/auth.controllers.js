@@ -124,7 +124,7 @@ export const logoutUser = async (req, res) => {
 
 // profile page
 export const getProfilePage = async (req, res) => {
-  if (!req.user) return res.send("User not logged in.");
+  if (!req.user) return res.redirect("/login");
   const user = await getUserById(req.user.id);
   if (!user) return res.redirect("/login");
 
@@ -134,8 +134,20 @@ export const getProfilePage = async (req, res) => {
       id: user.id,
       name: user.name,
       email: user.email,
+      isEmailValid: user.isEmailValid,
       createdAt: user.createdAt,
       links: userShortLinks,
     },
+  });
+};
+
+// email verification
+export const getVerifyEmailPage = async (req, res) => {
+  // if (!req.user || req.user.isEmailValid) return res.redirect("/");
+  if (!req.user) return res.redirect("/");
+  const user = await getUserById(req.user.id);
+  if (!user || user.isEmailValid) return res.redirect("/");
+  return res.render("auth/verify-email", {
+    email: req.user.email,
   });
 };
