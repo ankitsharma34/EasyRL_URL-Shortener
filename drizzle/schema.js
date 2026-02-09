@@ -61,6 +61,7 @@ export const verifyEmailTokensTable = mysqlTable("is_email_valid", {
 export const usersRelation = relations(usersTable, ({ many }) => ({
   shortLink: many(shortLinkTable),
   session: many(sessionsTable),
+  verifyEmailToken: many(verifyEmailTokensTable),
 }));
 // a short link belongs to a user
 export const shortLinkRelation = relations(shortLinkTable, ({ one }) => ({
@@ -77,3 +78,14 @@ export const sessionsRelation = relations(sessionsTable, ({ one }) => ({
     references: [usersTable.id],
   }),
 }));
+
+// an email verification token belongs to only one user
+export const verifyEmailTokensRelation = relations(
+  verifyEmailTokensTable,
+  ({ one }) => ({
+    user: one(usersTable, {
+      fields: [verifyEmailTokensTable.userId],
+      references: [usersTable.id],
+    }),
+  }),
+);
