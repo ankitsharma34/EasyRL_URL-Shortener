@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../config/db.js";
 import bcrypt from "bcrypt";
 import argon2 from "argon2";
@@ -8,6 +8,7 @@ import {
   sessionsTable,
   shortLinkTable,
   usersTable,
+  verifyEmailTokensTable,
 } from "../drizzle/schema.js";
 import {
   ACCESS_TOKEN_EXPIRY,
@@ -157,4 +158,23 @@ export const getAllShortLinks = async (userId) => {
     .select()
     .from(shortLinkTable)
     .where(eq(shortLinkTable.userId, userId));
+};
+
+export const generateRandomToken = async (digit = 8) => {
+  const min = 10 ** (digit - 1);
+  const max = 10 ** digit;
+
+  return crypto.randomInt(min, max).toString();
+};
+
+export const insertEmailVerificationToken = async ({ userId, token }) => {
+  await db
+    .delete(verifyEmailTokensTable)
+    .where(lt(verifyEmailTokensTable.expiresAt, sql`CURRENT_TIMESTAMP`));
+  return db.insert(verifyEmailTokensTable).values({ userId, token });
+};
+
+export const createVerificationEmailLink = async ({ host, email, token }) => {
+  const uriEncodedEmail = encodeURIComponent(email);
+  return `${host}/verify-email-token?token=${token}&email=${uriEncodedEmail}`;
 };

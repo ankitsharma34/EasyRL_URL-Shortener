@@ -8,6 +8,7 @@ import {
   logoutUser,
   postLogin,
   postRegister,
+  resendVerificationLink,
 } from "../controllers/auth.controllers.js";
 
 const router = Router();
@@ -21,6 +22,7 @@ router.route("/login").get(getLoginPage).post(postLogin);
 router.route("/me").get(getMe);
 router.get("/profile", getProfilePage);
 router.route("/verify-email").get(getVerifyEmailPage);
+router.route("/resend-verification-link").post(resendVerificationLink);
 router.route("/logout").get(logoutUser);
 
 export const authRoute = router;

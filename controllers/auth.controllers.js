@@ -9,11 +9,14 @@ import {
   createSession,
   createSessionAndTokens,
   createUser,
+  createVerificationEmailLink,
+  generateRandomToken,
   getAllShortLinks,
   // generateToken,
   getUserByEmail,
   getUserById,
   hashPassword,
+  insertEmailVerificationToken,
   verifyPassword,
 } from "../services/auth.services.js";
 import {
@@ -149,5 +152,23 @@ export const getVerifyEmailPage = async (req, res) => {
   if (!user || user.isEmailValid) return res.redirect("/");
   return res.render("auth/verify-email", {
     email: req.user.email,
+  });
+};
+
+export const resendVerificationLink = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+  const user = await getUserById(req.user.id);
+  if (!user || user.isEmailValid) return res.redirect("/");
+
+  const randomToken = generateRandomToken();
+
+  await insertEmailVerificationToken({
+    userId: req.user.id,
+    token: randomToken,
+  });
+  const verificationEmailLink = await createVerificationEmailLink({
+    host: req.host,
+    email: req.user.email,
+    token: randomToken,
   });
 };
