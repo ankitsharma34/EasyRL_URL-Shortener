@@ -169,10 +169,20 @@ export const generateRandomToken = (digit = 8) => {
 };
 
 export const insertEmailVerificationToken = async ({ userId, token }) => {
-  await db
-    .delete(verifyEmailTokensTable)
-    .where(lt(verifyEmailTokensTable.expiresAt, sql`CURRENT_TIMESTAMP`));
-  return db.insert(verifyEmailTokensTable).values({ userId, token });
+  return db.transaction(async (tx) => {
+    try {
+      await tx
+        .delete(verifyEmailTokensTable)
+        .where(lt(verifyEmailTokensTable.expiresAt, sql`CURRENT_TIMESTAMP`));
+      await tx
+        .delete(verifyEmailTokensTable)
+        .where(eq(verifyEmailTokensTable.userId, userId));
+      return tx.insert(verifyEmailTokensTable).values({ userId, token });
+    } catch (error) {
+      console.log("Failed to insert verification token: ", error);
+      throw new Error("unable to create verification token");
+    }
+  });
 };
 
 export const createVerificationEmailLink = async ({
@@ -197,12 +207,19 @@ export const getVerificationToken = async ({ userId, token }) => {
 };
 
 export const verifyToken = async ({ userId, token }) => {
-  await db
-    .update(usersTable)
-    .set({ isEmailValid: true })
-    .where(eq(usersTable.id, userId));
+  return db.transaction(async (tx) => {
+    try {
+      await tx
+        .update(usersTable)
+        .set({ isEmailValid: true })
+        .where(eq(usersTable.id, userId));
 
-  await db
-    .delete(verifyEmailTokensTable)
-    .where(eq(verifyEmailTokensTable.token, token));
+      await tx
+        .delete(verifyEmailTokensTable)
+        .where(eq(verifyEmailTokensTable.token, token));
+    } catch (error) {
+      console.log("Failed to verify token: ", error);
+      throw new Error("Unable to verify token.");
+    }
+  });
 };
