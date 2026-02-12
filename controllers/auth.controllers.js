@@ -2,6 +2,7 @@ import {
   ACCESS_TOKEN_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
 } from "../config/constants.js";
+import { sendEmail } from "../lib/nodemailer.js";
 import {
   clearUserSession,
   createAccessToken,
@@ -15,9 +16,11 @@ import {
   // generateToken,
   getUserByEmail,
   getUserById,
+  getVerificationToken,
   hashPassword,
   insertEmailVerificationToken,
   verifyPassword,
+  verifyToken,
 } from "../services/auth.services.js";
 import {
   loginUserSchema,
@@ -152,6 +155,7 @@ export const getVerifyEmailPage = async (req, res) => {
   if (!user || user.isEmailValid) return res.redirect("/");
   return res.render("auth/verify-email", {
     email: req.user.email,
+    errors: req.flash("errors"),
   });
 };
 
@@ -167,8 +171,48 @@ export const resendVerificationLink = async (req, res) => {
     token: randomToken,
   });
   const verificationEmailLink = await createVerificationEmailLink({
+    protocol: req.protocol,
     host: req.host,
     email: req.user.email,
     token: randomToken,
   });
+
+  sendEmail({
+    to: req.user.email,
+    subject: "Verify your email",
+    html: `
+        <h1>Click the link below to verify your email</h1>
+        <p>You can use this token: ${randomToken}</p>
+        <a href="${verificationEmailLink}">Verify Email</a>
+    `,
+  }).catch(console.error);
+
+  res.redirect("/verify-email");
+};
+
+export const verifyEmailToken = async (req, res) => {
+  const { token, email } = req.query;
+
+  if (!req.user) return res.redirect("/login");
+
+  if (email !== req.user.email) {
+    req.flash("errors", "Email mismatch.");
+    return res.redirect("/verify-email");
+  }
+
+  const user = await getUserById(req.user.id);
+  if (!user || user.isEmailValid) return res.redirect("/");
+
+  const verificationToken = await getVerificationToken({
+    userId: req.user.id,
+    token,
+  });
+
+  if (!verificationToken) {
+    req.flash("errors", "Invalid or expired token.");
+    return res.redirect("/verify-email");
+  }
+  await verifyToken({ userId: user.id, token });
+
+  return res.redirect("/profile");
 };

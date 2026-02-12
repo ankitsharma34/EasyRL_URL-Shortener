@@ -59,9 +59,10 @@
         <div class="card-body">
           <form action="/verify-email-token" method="get" class="form">
             <div class="form-group">
-              <label for="token" class="control-label"
-                >Enter 8-Digit Verification Code:</label
-              >
+              <label for="token" class="control-label">Enter 8-Digit Verification Code:</label>
+              <br>
+              <br>
+              <br>
               <input
                 type="text"
                 name="token"
@@ -73,10 +74,17 @@
                 title="Please enter an 8-digit number"
               />
             </div>
-
+            <% if (errors && errors.length > 0) { %>
+              <div class="form-group">
+                <% errors.forEach((error) => { %>
+                  <p class="flash-error">
+                    <%= error %>
+                  </p>
+                <% }); %>
+              </div>
+            <% } %>
             <input type="hidden" value="<%= email %>" name="email" />
-
-            <button type="submit" class="btn btn-primary">Verify Code</button>
+            <button type="submit" class="btn btn-primary btn-block">Verify Code</button>
           </form>
         </div>
       </div>

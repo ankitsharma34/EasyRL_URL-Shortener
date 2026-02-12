@@ -1,8 +1,9 @@
-import { eq, sql } from "drizzle-orm";
+import { eq, lt, sql } from "drizzle-orm";
 import { db } from "../config/db.js";
 import bcrypt from "bcrypt";
 import argon2 from "argon2";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
 import { env } from "../config/env.js";
 import {
   sessionsTable,
@@ -160,7 +161,7 @@ export const getAllShortLinks = async (userId) => {
     .where(eq(shortLinkTable.userId, userId));
 };
 
-export const generateRandomToken = async (digit = 8) => {
+export const generateRandomToken = (digit = 8) => {
   const min = 10 ** (digit - 1);
   const max = 10 ** digit;
 
@@ -174,7 +175,34 @@ export const insertEmailVerificationToken = async ({ userId, token }) => {
   return db.insert(verifyEmailTokensTable).values({ userId, token });
 };
 
-export const createVerificationEmailLink = async ({ host, email, token }) => {
+export const createVerificationEmailLink = async ({
+  protocol,
+  host,
+  email,
+  token,
+}) => {
   const uriEncodedEmail = encodeURIComponent(email);
-  return `${host}/verify-email-token?token=${token}&email=${uriEncodedEmail}`;
+  return `${protocol}://${host}/verify-email-token?token=${token}&email=${uriEncodedEmail}`;
+};
+
+export const getVerificationToken = async ({ userId, token }) => {
+  const [verificationToken] = await db
+    .select()
+    .from(verifyEmailTokensTable)
+    .where(
+      eq(verifyEmailTokensTable.userId, userId),
+      eq(verifyEmailTokensTable.token, token),
+    );
+  return verificationToken;
+};
+
+export const verifyToken = async ({ userId, token }) => {
+  await db
+    .update(usersTable)
+    .set({ isEmailValid: true })
+    .where(eq(usersTable.id, userId));
+
+  await db
+    .delete(verifyEmailTokensTable)
+    .where(eq(verifyEmailTokensTable.token, token));
 };
