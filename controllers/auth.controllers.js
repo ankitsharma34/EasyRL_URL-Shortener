@@ -21,6 +21,7 @@ import {
   getVerificationToken,
   hashPassword,
   insertEmailVerificationToken,
+  sendNewVerificationLink,
   verifyPassword,
   verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
@@ -64,7 +65,13 @@ export const postRegister = async (req, res) => {
   // ! Auto login after registration
   await createSessionAndTokens({ req, res, user, name, email });
 
-  return res.redirect("/");
+  await sendNewVerificationLink({
+    userId: user.id,
+    email,
+    protocol: req.protocol,
+    host: req.host,
+  });
+  return res.redirect("/verify-email");
 };
 
 export const getLoginPage = (req, res) => {
@@ -124,6 +131,8 @@ export const getMe = (req, res) => {
   return res.send(`<h1> ${req.user.name} - ${req.user.email}</h1>`);
 };
 export const logoutUser = async (req, res) => {
+  if (!req.user) return res.redirect("/login");
+
   await clearUserSession(req.user.sessionId);
 
   res.clearCookie("access_token");
@@ -167,28 +176,12 @@ export const resendVerificationLink = async (req, res) => {
   const user = await getUserById(req.user.id);
   if (!user || user.isEmailValid) return res.redirect("/");
 
-  const randomToken = generateRandomToken();
-
-  await insertEmailVerificationToken({
+  await sendNewVerificationLink({
     userId: req.user.id,
-    token: randomToken,
-  });
-  const verificationEmailLink = await createVerificationEmailLink({
+    email: req.user.email,
     protocol: req.protocol,
     host: req.host,
-    email: req.user.email,
-    token: randomToken,
   });
-
-  sendEmail({
-    to: req.user.email,
-    subject: "Verify your email",
-    html: `
-        <h1>Click the link below to verify your email</h1>
-        <p>You can use this token: ${randomToken}</p>
-        <a href="${verificationEmailLink}">Verify Email</a>
-    `,
-  }).catch(console.error);
 
   res.redirect("/verify-email");
 };
