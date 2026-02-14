@@ -21,6 +21,7 @@ import {
 import { sendEmail } from "../lib/nodemailer.js";
 import mjml2html from "mjml";
 import ejs from "ejs";
+import { resendEmail } from "../lib/resend-email.js";
 
 export const getUserByEmail = async (email) => {
   const [user] = await db
@@ -260,7 +261,7 @@ export const findVerificationEmailToken = async ({ token, email }) => {
   // };
 
   //! using SQL joins
-  return await db
+  return db
     .select({
       userId: usersTable.id,
       email: usersTable.email,
@@ -324,14 +325,14 @@ export const sendNewVerificationLink = async ({
   });
   // mjml -> HTML
   const htmlOutput = mjml2html(filledTemplate).html;
-  sendEmail({
+  // sendEmail({
+  //   to: email,
+  //   subject: "Verify your email",
+  //   html: htmlOutput,
+  // }).catch(console.error);
+  resendEmail({
     to: email,
     subject: "Verify your email",
-    // html: `
-    //       <h1>Click the link below to verify your email</h1>
-    //       <p>You can use this token: ${randomToken}</p>
-    //       <a href="${verificationEmailLink}">Verify Email</a>
-    //   `,
     html: htmlOutput,
   }).catch(console.error);
 };

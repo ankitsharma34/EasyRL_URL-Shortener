@@ -25,8 +25,6 @@ export const env = z
     // ! express-session
     SESSION_SECRET: z.string(),
 
-    //! ethereal
-    ETHEREAL_USERNAME: z.string(),
-    ETHEREAL_PASSWORD: z.string(),
+    RESEND_API_KEY: z.string(),
   })
   .parse(process.env);
