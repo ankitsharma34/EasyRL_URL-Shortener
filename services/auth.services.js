@@ -336,3 +336,7 @@ export const sendNewVerificationLink = async ({
     html: htmlOutput,
   }).catch(console.error);
 };
+
+export const updateUserByName = async ({ userId, name }) => {
+  return db.update(usersTable).set({ name }).where(eq(usersTable.id, userId));
+};

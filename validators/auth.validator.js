@@ -1,5 +1,10 @@
 import z from "zod";
 
+const nameSchema = z
+  .string()
+  .trim()
+  .min(2, { message: "Name must be at least 2 characters long" })
+  .max(100, { message: "Name must be no more than 100 characters" });
 export const loginUserSchema = z.object({
   email: z
     .string()
@@ -13,14 +18,14 @@ export const loginUserSchema = z.object({
 });
 
 export const registerUserSchema = loginUserSchema.extend({
-  name: z
-    .string()
-    .trim()
-    .min(2, { message: "Name must be at least 2 characters long" })
-    .max(100, { message: "Name must be no more than 100 characters" }),
+  name: nameSchema,
 });
 
 export const verifyEmailSchema = z.object({
   token: z.string().trim().length(8),
   email: z.string().trim().email(),
+});
+
+export const verifyUserSchema = z.object({
+  name: nameSchema,
 });

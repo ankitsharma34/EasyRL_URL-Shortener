@@ -22,6 +22,7 @@ import {
   hashPassword,
   insertEmailVerificationToken,
   sendNewVerificationLink,
+  updateUserByName,
   verifyPassword,
   verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
@@ -29,6 +30,7 @@ import {
   loginUserSchema,
   registerUserSchema,
   verifyEmailSchema,
+  verifyUserSchema,
 } from "../validators/auth.validator.js";
 
 export const getRegisterPage = (req, res) => {
@@ -202,5 +204,28 @@ export const verifyEmailToken = async (req, res) => {
 
   await verifyUserEmailAndUpdate(token.email);
   clearEmailVerificationTokens(token.email);
+  return res.redirect("/profile");
+};
+
+// EDIT PROFILE PAGE
+export const getEditProfilePage = async (req, res) => {
+  if (!req.user) return res.redirect("/login");
+  const user = await getUserById(req.user.id);
+  if (!user) return res.status(400).send("User not found");
+  return res.render("auth/edit-profile", {
+    username: user.name,
+    errors: req.flash("errors"),
+  });
+};
+
+export const postEditProfile = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+  const { data, error } = verifyUserSchema.safeParse(req.body);
+  if (error) {
+    const errorMessage = error.errors.map((err) => err.message);
+    req.flash("errors", errorMessage);
+    return res.redirect("/edit-profile");
+  }
+  await updateUserByName({ userId: req.user.id, name: data.name });
   return res.redirect("/profile");
 };
