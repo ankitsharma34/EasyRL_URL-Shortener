@@ -4,6 +4,7 @@ import {
 } from "../config/constants.js";
 import { sendEmail } from "../lib/nodemailer.js";
 import {
+  clearEmailVerificationTokens,
   clearUserSession,
   createAccessToken,
   createRefreshToken,
@@ -11,6 +12,7 @@ import {
   createSessionAndTokens,
   createUser,
   createVerificationEmailLink,
+  findVerificationEmailToken,
   generateRandomToken,
   getAllShortLinks,
   // generateToken,
@@ -20,11 +22,12 @@ import {
   hashPassword,
   insertEmailVerificationToken,
   verifyPassword,
-  verifyToken,
+  verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
 import {
   loginUserSchema,
   registerUserSchema,
+  verifyEmailSchema,
 } from "../validators/auth.validator.js";
 
 export const getRegisterPage = (req, res) => {
@@ -191,28 +194,19 @@ export const resendVerificationLink = async (req, res) => {
 };
 
 export const verifyEmailToken = async (req, res) => {
-  const { token, email } = req.query;
+  const { data, error } = verifyEmailSchema.safeParse(req.query);
+  if (error) {
+    return res.send("verification link invalid or expired");
+  }
 
-  if (!req.user) return res.redirect("/login");
-
-  if (email !== req.user.email) {
-    req.flash("errors", "Email mismatch.");
+  const token = await findVerificationEmailToken(data);
+  console.log("Token: ", token);
+  if (!token) {
+    res.flash("errors", "Verification link/code expired or invalid.");
     return res.redirect("/verify-email");
   }
 
-  const user = await getUserById(req.user.id);
-  if (!user || user.isEmailValid) return res.redirect("/");
-
-  const verificationToken = await getVerificationToken({
-    userId: req.user.id,
-    token,
-  });
-
-  if (!verificationToken) {
-    req.flash("errors", "Invalid or expired token.");
-    return res.redirect("/verify-email");
-  }
-  await verifyToken({ userId: user.id, token });
-
+  await verifyUserEmailAndUpdate(token.email);
+  clearEmailVerificationTokens(token.email);
   return res.redirect("/profile");
 };
