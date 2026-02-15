@@ -340,3 +340,11 @@ export const sendNewVerificationLink = async ({
 export const updateUserByName = async ({ userId, name }) => {
   return db.update(usersTable).set({ name }).where(eq(usersTable.id, userId));
 };
+
+export const updateUserPassword = async ({ userId, newPassword }) => {
+  const newHashedPassword = await hashPassword(newPassword);
+  return await db
+    .update(usersTable)
+    .set({ password: newHashedPassword })
+    .where(eq(usersTable.id, userId));
+};

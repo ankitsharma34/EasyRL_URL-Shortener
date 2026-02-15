@@ -29,3 +29,26 @@ export const verifyEmailSchema = z.object({
 export const verifyUserSchema = z.object({
   name: nameSchema,
 });
+
+export const verifyPasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, { message: "Current password is required." }),
+    newPassword: z
+      .string()
+      .min(6, { message: "New Password must be at least 6 characters long." })
+      .max(100, { message: "New Password must not more than 100 characters." }),
+    confirmPassword: z
+      .string()
+      .min(6, {
+        message: "Confirm Password must be at least 6 characters long.",
+      })
+      .max(100, {
+        message: "Confirm Password must not more than 100 characters.",
+      }),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Password doesn't match!",
+    path: ["confirmPassword"], //Error is associated with confirmPassword
+  });

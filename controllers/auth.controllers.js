@@ -23,6 +23,7 @@ import {
   insertEmailVerificationToken,
   sendNewVerificationLink,
   updateUserByName,
+  updateUserPassword,
   verifyPassword,
   verifyUserEmailAndUpdate,
 } from "../services/auth.services.js";
@@ -30,6 +31,7 @@ import {
   loginUserSchema,
   registerUserSchema,
   verifyEmailSchema,
+  verifyPasswordSchema,
   verifyUserSchema,
 } from "../validators/auth.validator.js";
 
@@ -227,5 +229,34 @@ export const postEditProfile = async (req, res) => {
     return res.redirect("/edit-profile");
   }
   await updateUserByName({ userId: req.user.id, name: data.name });
+  return res.redirect("/profile");
+};
+
+// change password
+export const getChangePasswordPage = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+  return res.render("auth/change-password", {
+    errors: req.flash("errors"),
+  });
+};
+
+export const postChangePassword = async (req, res) => {
+  const { data, error } = verifyPasswordSchema.safeParse(req.body);
+  if (error) {
+    const errorMessages = error.issues.map((err) => err.message);
+    req.flash("errors", errorMessages);
+    return res.redirect("/change-password");
+  }
+
+  const { currentPassword, newPassword } = data;
+  const user = await getUserById(req.user.id);
+  if (!user) return res.status(400).send("User not found");
+
+  const isPasswordValid = await verifyPassword(currentPassword, user.password);
+  if (!isPasswordValid) {
+    req.flash("errors", "Current Password is incorrect.");
+    return res.redirect("/change-password");
+  }
+  await updateUserPassword({ userId: user.id, newPassword });
   return res.redirect("/profile");
 };
