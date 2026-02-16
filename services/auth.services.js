@@ -8,6 +8,7 @@ import { and, eq, gte, lt, sql } from "drizzle-orm";
 import { env } from "../config/env.js";
 import { db } from "../config/db.js";
 import {
+  passwordResetTokensTable,
   sessionsTable,
   shortLinkTable,
   usersTable,
@@ -347,4 +348,44 @@ export const updateUserPassword = async ({ userId, newPassword }) => {
     .update(usersTable)
     .set({ password: newHashedPassword })
     .where(eq(usersTable.id, userId));
+};
+
+export const createResetPasswordLink = async ({ userId, protocol, host }) => {
+  // 1. create random token
+  const randomToken = crypto.randomBytes(32).toString("hex");
+  // 2. hash the random token
+  const tokenHash = crypto
+    .createHash("sha256")
+    .update(randomToken)
+    .digest("hex");
+  // 3. delete the existing tokens
+  await db
+    .delete(passwordResetTokensTable)
+    .where(eq(passwordResetTokensTable.userId, userId));
+  // 4. insert the token and userId
+  await db.insert(passwordResetTokensTable).values({ userId, tokenHash });
+  // 5. create link
+  const url = new URL(`${protocol}://${host}/reset-password/${randomToken}`);
+
+  return url.toString();
+};
+
+export const getResetPasswordToken = async (token) => {
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const [data] = await db
+    .select()
+    .from(passwordResetTokensTable)
+    .where(
+      and(
+        eq(passwordResetTokensTable.tokenHash, tokenHash),
+        gte(passwordResetTokensTable.expiresAt, sql`CURRENT_TIMESTAMP`),
+      ),
+    );
+  return data;
+};
+
+export const clearResetPasswordToken = async (userId) => {
+  return await db
+    .delete(passwordResetTokensTable)
+    .where(eq(passwordResetTokensTable.userId, userId));
 };

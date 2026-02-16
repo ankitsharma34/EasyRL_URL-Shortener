@@ -2,16 +2,20 @@ import { Router } from "express";
 import {
   getChangePasswordPage,
   getEditProfilePage,
+  getForgotPasswordPage,
   getLoginPage,
   getMe,
   getProfilePage,
   getRegisterPage,
+  getResetPasswordPage,
   getVerifyEmailPage,
   logoutUser,
   postChangePassword,
   postEditProfile,
+  postForgotPassword,
   postLogin,
   postRegister,
+  postResetPassword,
   resendVerificationLink,
   verifyEmailToken,
 } from "../controllers/auth.controllers.js";
@@ -31,6 +35,15 @@ router
   .route("/change-password")
   .get(getChangePasswordPage)
   .post(postChangePassword);
+
+router
+  .route("/forgot-password")
+  .get(getForgotPasswordPage)
+  .post(postForgotPassword);
+router
+  .route("/reset-password/:token")
+  .get(getResetPasswordPage)
+  .post(postResetPassword);
 
 router.route("/verify-email").get(getVerifyEmailPage);
 router.route("/resend-verification-link").post(resendVerificationLink);
