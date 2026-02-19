@@ -3,6 +3,8 @@ import {
   getChangePasswordPage,
   getEditProfilePage,
   getForgotPasswordPage,
+  getGoogleLoginCallback,
+  getGoogleLoginPage,
   getLoginPage,
   getMe,
   getProfilePage,
@@ -48,6 +50,9 @@ router
 router.route("/verify-email").get(getVerifyEmailPage);
 router.route("/resend-verification-link").post(resendVerificationLink);
 router.route("/verify-email-token").get(verifyEmailToken);
+
+router.route("/google").get(getGoogleLoginPage);
+router.route("/google/callback").get(getGoogleLoginCallback);
 router.route("/logout").get(logoutUser);
 
 export const authRoute = router;

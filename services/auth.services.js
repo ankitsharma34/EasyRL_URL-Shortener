@@ -8,6 +8,7 @@ import { and, eq, gte, lt, sql } from "drizzle-orm";
 import { env } from "../config/env.js";
 import { db } from "../config/db.js";
 import {
+  oAuthAccountsTable,
   passwordResetTokensTable,
   sessionsTable,
   shortLinkTable,
@@ -388,4 +389,57 @@ export const clearResetPasswordToken = async (userId) => {
   return await db
     .delete(passwordResetTokensTable)
     .where(eq(passwordResetTokensTable.userId, userId));
+};
+
+// OAuth
+export const getUserWithOauthId = async ({ email, provider }) => {
+  const [user] = await db
+    .select({
+      id: usersTable.id,
+      name: usersTable.name,
+      email: usersTable.email,
+      isEmailValid: usersTable.isEmailValid,
+      providerAccountId: oAuthAccountsTable.providerAccountId,
+      provider: oAuthAccountsTable.provider,
+    })
+    .from(usersTable)
+    .where(eq(usersTable.email, email))
+    .leftJoin(
+      oAuthAccountsTable,
+      and(
+        eq(oAuthAccountsTable.provider, provider),
+        eq(oAuthAccountsTable.userId, usersTable.id),
+      ),
+    );
+  return user;
+};
+
+export const linkUserWithOauth = async (data) => {
+  await db.insert(oAuthAccountsTable).values(data);
+};
+
+export const createUserWithOauth = async ({
+  name,
+  email,
+  provider,
+  providerAccountId,
+}) => {
+  const user = await db.transaction(async (trx) => {
+    const [user] = await trx
+      .insert(usersTable)
+      .values({ email, name, isEmailValid: true })
+      .$returningId();
+    await trx
+      .insert(oAuthAccountsTable)
+      .values({ provider, providerAccountId, userId: user.id });
+    return {
+      id: user.id,
+      name,
+      email,
+      isEmailValid: true,
+      provider,
+      providerAccountId,
+    };
+  });
+  return user;
 };

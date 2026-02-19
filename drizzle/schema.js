@@ -2,6 +2,7 @@ import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   int,
+  mysqlEnum,
   mysqlTable,
   serial,
   text,
@@ -25,7 +26,7 @@ export const usersTable = mysqlTable("users", {
   name: varchar({ length: 255 }).notNull(),
   email: varchar({ length: 255 }).notNull().unique(),
   isEmailValid: boolean("is_email_valid").default(false).notNull(),
-  password: varchar({ length: 255 }).notNull(),
+  password: varchar({ length: 255 }), // password is null when login with Oauth2.0
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
 });
@@ -103,3 +104,15 @@ export const verifyEmailTokensRelation = relations(
     }),
   }),
 );
+
+export const oAuthAccountsTable = mysqlTable("oauth_accounts", {
+  id: int().autoincrement().primaryKey(),
+  userId: int("user_id")
+    .notNull()
+    .references(() => usersTable.id, { onDelete: "cascade" }),
+  provider: mysqlEnum("provider", ["google", "github"]).notNull(),
+  providerAccountId: varchar("provider_account_id", { length: 255 })
+    .notNull()
+    .unique(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

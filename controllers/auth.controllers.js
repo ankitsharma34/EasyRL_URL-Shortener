@@ -1,5 +1,12 @@
 import {
+  decodeIdToken,
+  generateCodeVerifier,
+  generateState,
+  Google,
+} from "arctic";
+import {
   ACCESS_TOKEN_EXPIRY,
+  OAUTH_EXCHANGE_EXPIRY,
   REFRESH_TOKEN_EXPIRY,
 } from "../config/constants.js";
 import { getHTMLfromMJMLTemplate } from "../lib/get-html-from-mjml.js";
@@ -23,9 +30,11 @@ import {
   // generateToken,
   getUserByEmail,
   getUserById,
+  getUserWithOauthId,
   getVerificationToken,
   hashPassword,
   insertEmailVerificationToken,
+  linkUserWithOauth,
   sendNewVerificationLink,
   updateUserByName,
   updateUserPassword,
@@ -41,6 +50,7 @@ import {
   verifyResetPasswordSchema,
   verifyUserSchema,
 } from "../validators/auth.validator.js";
+import { google } from "../lib/oauth/google.js";
 
 export const getRegisterPage = (req, res) => {
   if (req.user) return res.redirect("/");
@@ -107,6 +117,14 @@ export const postLogin = async (req, res) => {
   const user = await getUserByEmail(email);
   if (!user) {
     req.flash("errors", "Invalid email or password.");
+    return res.redirect("/login");
+  }
+
+  if (!user.password) {
+    req.flash(
+      "errors",
+      "You have created account using social login. Please login with your social account",
+    );
     return res.redirect("/login");
   }
 
@@ -334,4 +352,92 @@ export const postResetPassword = async (req, res) => {
   await updateUserPassword({ userId: user.id, newPassword });
 
   return res.redirect("/login");
+};
+
+// LOGIN WITH GOOGLE
+
+export const getGoogleLoginPage = async (req, res) => {
+  const state = generateState();
+  const codeVerifier = generateCodeVerifier();
+  const scopes = [
+    "openid", // gives token if needed
+    "profile", // gives user information
+    // we are telling the google, what we require about the user
+    "email",
+  ];
+  const url = google.createAuthorizationURL(state, codeVerifier, scopes);
+  const cookieConfig = {
+    secure: true, // set to false in localhost
+    path: "/",
+    httpOnly: true,
+    maxAge: OAUTH_EXCHANGE_EXPIRY,
+    sameSite: "lax",
+  };
+
+  res.cookie("google_oauth_state", state, cookieConfig);
+  res.cookie("google_code_verifier", codeVerifier, cookieConfig);
+
+  res.redirect(url.toString());
+};
+
+export const getGoogleLoginCallback = async (req, res) => {
+  // google redirect code and state in query params
+  const { code, state } = req.query;
+  console.log(code, state);
+  const {
+    google_oauth_state: storedState,
+    google_code_verifier: codeVerifier,
+  } = req.cookies;
+  if (
+    !code ||
+    !state | !storedState ||
+    !codeVerifier ||
+    state !== storedState
+  ) {
+    req.flash(
+      "errors",
+      "Couldn't login with Google because of invalid login Attempt.Please try again.",
+    );
+    return res.redirect("/login");
+  }
+
+  let tokens;
+  try {
+    tokens = await google.validateAuthorizationCode(code, codeVerifier);
+  } catch {
+    req.flash(
+      "errors",
+      "Couldn't login with Google because of invalid login Attempt.Please try again.",
+    );
+    return res.redirect("/login");
+  }
+  console.log("token google:", tokens);
+
+  const claims = decodeIdToken(tokens.idToken());
+  const { sub: googleUserId, name, email } = claims;
+
+  // if the user already linked, then we will get the user
+  let user = await getUserWithOauthId({ provider: "google", email });
+
+  // if userExist but user is not linked with oauth
+  if (user && !user.providerAccountId) {
+    await linkUserWithOauth({
+      userId: user.id,
+      provider: "google",
+      providerAccountId: googleUserId,
+    });
+  }
+
+  // if user does not exist
+  if (!user) {
+    user = await createUserWithOauth({
+      name,
+      email,
+      provider: "google",
+      providerAccountId: googleUserId,
+    });
+  }
+
+  await createSessionAndTokens({ req, res, user, name, email });
+  res.redirect("/");
 };

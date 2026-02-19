@@ -26,5 +26,8 @@ export const env = z
     SESSION_SECRET: z.string(),
 
     RESEND_API_KEY: z.string(),
+
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
   })
   .parse(process.env);
