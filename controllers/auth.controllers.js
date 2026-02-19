@@ -22,6 +22,7 @@ import {
   createSession,
   createSessionAndTokens,
   createUser,
+  createUserWithOauth,
   createVerificationEmailLink,
   findVerificationEmailToken,
   generateRandomToken,
@@ -51,6 +52,7 @@ import {
   verifyUserSchema,
 } from "../validators/auth.validator.js";
 import { google } from "../lib/oauth/google.js";
+import { github } from "../lib/oauth/github.js";
 
 export const getRegisterPage = (req, res) => {
   if (req.user) return res.redirect("/");
@@ -357,6 +359,7 @@ export const postResetPassword = async (req, res) => {
 // LOGIN WITH GOOGLE
 
 export const getGoogleLoginPage = async (req, res) => {
+  if (req.user) return res.redirect("/");
   const state = generateState();
   const codeVerifier = generateCodeVerifier();
   const scopes = [
@@ -435,6 +438,88 @@ export const getGoogleLoginCallback = async (req, res) => {
       email,
       provider: "google",
       providerAccountId: googleUserId,
+    });
+  }
+
+  await createSessionAndTokens({ req, res, user, name, email });
+  res.redirect("/");
+};
+
+export const getGithubLoginPage = async (req, res) => {
+  if (req.user) return res.redirect("/");
+  const state = generateState();
+  const url = github.createAuthorizationURL(state, ["user:email"]);
+  const cookieConfig = {
+    secure: true, // set to false in localhost
+    path: "/",
+    httpOnly: true,
+    maxAge: OAUTH_EXCHANGE_EXPIRY,
+    sameSite: "lax",
+  };
+
+  res.cookie("github_oauth_state", state, cookieConfig);
+
+  res.redirect(url.toString());
+};
+
+export const getGithubLoginCallback = async (req, res) => {
+  const { code, state } = req.query;
+  const { github_oauth_state: storedState } = req.cookies;
+  function handleFailedLogin() {
+    req.flash(
+      "errors",
+      "Couldn't login with GitHub because of invalid login attempt. Please try again.",
+    );
+    res.redirect("/login");
+  }
+  if (!code || !state || !storedState || state !== storedState) {
+    return handleFailedLogin();
+  }
+  let tokens;
+  try {
+    tokens = await github.validateAuthorizationCode(code);
+  } catch {
+    return handleFailedLogin();
+  }
+
+  const githubUserResponse = await fetch("https://api.github.com/user", {
+    headers: {
+      Authorization: `Bearer ${tokens.accessToken()}`,
+    },
+  });
+  if (!githubUserResponse.ok) {
+    return handleFailedLogin();
+  }
+  const githubUser = await githubUserResponse.json();
+  const { id: githubUserId, name } = githubUser;
+  const githubEmailResponse = await fetch(
+    "https://api.github.com/user/emails",
+    {
+      headers: {
+        Authorization: `Bearer ${tokens.accessToken()}`,
+      },
+    },
+  );
+  if (!githubEmailResponse.ok) handleFailedLogin();
+  const emails = await githubEmailResponse.json();
+  const email = emails.filter((e) => e.primary)[0].email;
+  if (!email) return handleFailedLogin();
+
+  let user = await getUserWithOauthId({ provider: "github", email });
+
+  if (user && !user.providerAccountId) {
+    await linkUserWithOauth({
+      userId: user.id,
+      provider: "github",
+      providerAccountId: githubUserId,
+    });
+  }
+  if (!user) {
+    user = await createUserWithOauth({
+      name,
+      email,
+      provider: "github",
+      providerAccountId: githubUserId,
     });
   }
 

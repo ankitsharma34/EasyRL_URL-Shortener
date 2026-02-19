@@ -29,5 +29,10 @@ export const env = z
 
     GOOGLE_CLIENT_ID: z.string(),
     GOOGLE_CLIENT_SECRET: z.string(),
+
+    GITHUB_CLIENT_ID: z.string(),
+    GITHUB_CLIENT_SECRET: z.string(),
+
+    FRONTEND_URL: z.string().url().trim(),
   })
   .parse(process.env);

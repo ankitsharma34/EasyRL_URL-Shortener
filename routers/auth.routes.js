@@ -3,6 +3,8 @@ import {
   getChangePasswordPage,
   getEditProfilePage,
   getForgotPasswordPage,
+  getGithubLoginCallback,
+  getGithubLoginPage,
   getGoogleLoginCallback,
   getGoogleLoginPage,
   getLoginPage,
@@ -53,6 +55,10 @@ router.route("/verify-email-token").get(verifyEmailToken);
 
 router.route("/google").get(getGoogleLoginPage);
 router.route("/google/callback").get(getGoogleLoginCallback);
+
+router.route("/github").get(getGithubLoginPage);
+router.route("/github/callback").get(getGithubLoginCallback);
+
 router.route("/logout").get(logoutUser);
 
 export const authRoute = router;
