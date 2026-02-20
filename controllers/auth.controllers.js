@@ -49,6 +49,7 @@ import {
   verifyEmailSchema,
   verifyPasswordSchema,
   verifyResetPasswordSchema,
+  verifySetPasswordSchema,
   verifyUserSchema,
 } from "../validators/auth.validator.js";
 import { google } from "../lib/oauth/google.js";
@@ -184,6 +185,7 @@ export const getProfilePage = async (req, res) => {
       name: user.name,
       email: user.email,
       isEmailValid: user.isEmailValid,
+      hasPassword: Boolean(user.password),
       createdAt: user.createdAt,
       links: userShortLinks,
     },
@@ -525,4 +527,34 @@ export const getGithubLoginCallback = async (req, res) => {
 
   await createSessionAndTokens({ req, res, user, name, email });
   res.redirect("/");
+};
+
+// SET PASSWORD
+export const getSetPasswordPage = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+
+  return res.render("auth/set-password", {
+    errors: req.flash("errors"),
+  });
+};
+
+export const postSetPassword = async (req, res) => {
+  if (!req.user) return res.redirect("/");
+  const { data, error } = verifySetPasswordSchema.safeParse(req.body);
+  if (error) {
+    const errorMessages = error.issues.map((err) => err.message);
+    req.flash("errors", errorMessages);
+    return res.redirect("/set-password");
+  }
+
+  const { newPassword } = data;
+
+  const user = await getUserById(req.user.id);
+  if (user.password) {
+    req.flash("errors", "Password already exist. Change the password here.");
+    return res.redirect("/change-password");
+  }
+
+  await updateUserPassword({ userId: user.id, newPassword });
+  return res.redirect("/profile");
 };

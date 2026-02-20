@@ -12,6 +12,7 @@ import {
   getProfilePage,
   getRegisterPage,
   getResetPasswordPage,
+  getSetPasswordPage,
   getVerifyEmailPage,
   logoutUser,
   postChangePassword,
@@ -20,6 +21,7 @@ import {
   postLogin,
   postRegister,
   postResetPassword,
+  postSetPassword,
   resendVerificationLink,
   verifyEmailToken,
 } from "../controllers/auth.controllers.js";
@@ -58,6 +60,8 @@ router.route("/google/callback").get(getGoogleLoginCallback);
 
 router.route("/github").get(getGithubLoginPage);
 router.route("/github/callback").get(getGithubLoginCallback);
+
+router.route("/set-password").get(getSetPasswordPage).post(postSetPassword);
 
 router.route("/logout").get(logoutUser);
 

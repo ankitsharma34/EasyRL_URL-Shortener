@@ -18,7 +18,7 @@ export const shortLinkTable = mysqlTable("short_links", {
   updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
   userId: int("user_id")
     .notNull()
-    .references(() => usersTable.id),
+    .references(() => usersTable.id, { onDelete: "cascade" }),
 });
 
 export const usersTable = mysqlTable("users", {
