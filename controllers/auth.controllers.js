@@ -186,6 +186,7 @@ export const getProfilePage = async (req, res) => {
       email: user.email,
       isEmailValid: user.isEmailValid,
       hasPassword: Boolean(user.password),
+      avatarURL: user.avatarURL,
       createdAt: user.createdAt,
       links: userShortLinks,
     },
@@ -419,7 +420,7 @@ export const getGoogleLoginCallback = async (req, res) => {
   console.log("token google:", tokens);
 
   const claims = decodeIdToken(tokens.idToken());
-  const { sub: googleUserId, name, email } = claims;
+  const { sub: googleUserId, name, email, picture } = claims;
 
   // if the user already linked, then we will get the user
   let user = await getUserWithOauthId({ provider: "google", email });
@@ -430,6 +431,7 @@ export const getGoogleLoginCallback = async (req, res) => {
       userId: user.id,
       provider: "google",
       providerAccountId: googleUserId,
+      avatarURL: picture,
     });
   }
 
@@ -440,6 +442,7 @@ export const getGoogleLoginCallback = async (req, res) => {
       email,
       provider: "google",
       providerAccountId: googleUserId,
+      avatarURL: picture,
     });
   }
 
@@ -493,7 +496,7 @@ export const getGithubLoginCallback = async (req, res) => {
     return handleFailedLogin();
   }
   const githubUser = await githubUserResponse.json();
-  const { id: githubUserId, name } = githubUser;
+  const { id: githubUserId, name, avatar_url } = githubUser;
   const githubEmailResponse = await fetch(
     "https://api.github.com/user/emails",
     {
@@ -502,7 +505,7 @@ export const getGithubLoginCallback = async (req, res) => {
       },
     },
   );
-  if (!githubEmailResponse.ok) handleFailedLogin();
+  if (!githubEmailResponse.ok) return handleFailedLogin();
   const emails = await githubEmailResponse.json();
   const email = emails.filter((e) => e.primary)[0].email;
   if (!email) return handleFailedLogin();
@@ -514,6 +517,7 @@ export const getGithubLoginCallback = async (req, res) => {
       userId: user.id,
       provider: "github",
       providerAccountId: githubUserId,
+      avatarURL: avatar_url,
     });
   }
   if (!user) {
@@ -522,6 +526,7 @@ export const getGithubLoginCallback = async (req, res) => {
       email,
       provider: "github",
       providerAccountId: githubUserId,
+      avatarURL: avatar_url,
     });
   }
 

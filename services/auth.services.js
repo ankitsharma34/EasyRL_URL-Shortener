@@ -414,8 +414,21 @@ export const getUserWithOauthId = async ({ email, provider }) => {
   return user;
 };
 
-export const linkUserWithOauth = async (data) => {
-  await db.insert(oAuthAccountsTable).values(data);
+export const linkUserWithOauth = async ({
+  userId,
+  provider,
+  providerAccountId,
+  avatarURL,
+}) => {
+  await db
+    .insert(oAuthAccountsTable)
+    .values({ userId, provider, providerAccountId });
+  if (avatarURL) {
+    await db
+      .update(usersTable)
+      .set({ avatarURL })
+      .where(and(eq(usersTable.id, userId), isNull(usersTable.avatarURL)));
+  }
 };
 
 export const createUserWithOauth = async ({
@@ -423,11 +436,12 @@ export const createUserWithOauth = async ({
   email,
   provider,
   providerAccountId,
+  avatarURL,
 }) => {
   const user = await db.transaction(async (trx) => {
     const [user] = await trx
       .insert(usersTable)
-      .values({ email, name, isEmailValid: true })
+      .values({ email, name, isEmailValid: true, avatarURL })
       .$returningId();
     await trx
       .insert(oAuthAccountsTable)
