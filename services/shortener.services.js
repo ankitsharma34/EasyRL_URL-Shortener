@@ -23,16 +23,24 @@
 
 //! DRIZZLE
 
-import { eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { db } from "../config/db.js";
 import { shortLinkTable } from "../drizzle/schema.js";
 
-export const loadLinks = async (userId) => {
+export const loadLinks = async ({ userId, limit = 10, offset = 0 }) => {
+  const condition = eq(shortLinkTable.userId, userId);
   const allShortLinks = await db
     .select()
     .from(shortLinkTable)
-    .where(eq(shortLinkTable.userId, userId));
-  return allShortLinks;
+    .where(condition)
+    .orderBy(desc(shortLinkTable.createdAt))
+    .limit(limit)
+    .offset(offset);
+  const [{ totalCount }] = await db
+    .select({ totalCount: count() })
+    .from(shortLinkTable)
+    .where(condition);
+  return { allShortLinks, totalCount };
 };
 
 export const getLinkByShortCode = async (shortCode) => {

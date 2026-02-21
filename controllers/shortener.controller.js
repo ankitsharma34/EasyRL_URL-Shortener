@@ -19,13 +19,19 @@ import {
   saveLinks,
   updateShortCode,
 } from "../services/shortener.services.js";
+import { shortenerSearchParamsSchema } from "../validators/shortener.validator.js";
 
 export const getHomePage = async (req, res) => {
   try {
     if (!req.user) return res.redirect("/login");
-
+    const searchParams = shortenerSearchParamsSchema.parse(req.query);
     // !mongodb & mysql &  prisma & drizzle
-    const links = await loadLinks(req.user.id);
+    // const links = await loadLinks(req.user.id);
+    const { allShortLinks, totalCount } = await loadLinks({
+      userId: req.user.id,
+      limit: 10,
+      offset: (searchParams.page - 1) * 10,
+    });
     // !mongoose
     // const links = await urls.find();
 
@@ -41,9 +47,13 @@ export const getHomePage = async (req, res) => {
     // let isLoggedIn = req.cookies.isLoggedIn; // * cookie-parser
     // return res.render("index", { links, host: req.host, isLoggedIN });
 
+    const totalPages = Math.ceil(totalCount / 10);
+
     return res.render("index", {
-      links,
+      links: allShortLinks,
       host: req.host,
+      currentPage: searchParams.page,
+      totalPages,
       errors: req.flash("errors"),
     });
   } catch (error) {
