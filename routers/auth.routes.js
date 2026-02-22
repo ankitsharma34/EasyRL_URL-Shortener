@@ -25,6 +25,8 @@ import {
   resendVerificationLink,
   verifyEmailToken,
 } from "../controllers/auth.controllers.js";
+import multer from "multer";
+import path from "path";
 
 const router = Router();
 
@@ -36,7 +38,36 @@ router.route("/register").get(getRegisterPage).post(postRegister);
 router.route("/login").get(getLoginPage).post(postLogin);
 router.route("/me").get(getMe);
 router.get("/profile", getProfilePage);
-router.route("/edit-profile").get(getEditProfilePage).post(postEditProfile);
+
+const avatarStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/avatar");
+  },
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    cb(null, `${Date.now()}_${Math.random()}${ext}`);
+  },
+});
+
+const avatarFileFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith("image/")) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image files are allowed!"), false);
+  }
+};
+
+const avatarUpload = multer({
+  storage: avatarStorage,
+  fileFilter: avatarFileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5mb
+});
+
+// router.route("/edit-profile").get(getEditProfilePage).post(postEditProfile);
+router
+  .route("/edit-profile")
+  .get(getEditProfilePage)
+  .post(avatarUpload.single("avatar"), postEditProfile);
 router
   .route("/change-password")
   .get(getChangePasswordPage)

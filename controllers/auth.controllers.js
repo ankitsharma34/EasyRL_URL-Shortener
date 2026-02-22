@@ -37,7 +37,7 @@ import {
   insertEmailVerificationToken,
   linkUserWithOauth,
   sendNewVerificationLink,
-  updateUserByName,
+  updateUser,
   updateUserPassword,
   verifyPassword,
   verifyUserEmailAndUpdate,
@@ -246,6 +246,7 @@ export const getEditProfilePage = async (req, res) => {
   if (!user) return res.status(400).send("User not found");
   return res.render("auth/edit-profile", {
     username: user.name,
+    avatarURL: user.avatarURL,
     errors: req.flash("errors"),
   });
 };
@@ -258,7 +259,25 @@ export const postEditProfile = async (req, res) => {
     req.flash("errors", errorMessage);
     return res.redirect("/edit-profile");
   }
-  await updateUserByName({ userId: req.user.id, name: data.name });
+
+  let newAvatarURL;
+
+  if (req.file) {
+    // Case A: User uploaded a new file
+    newAvatarURL = `uploads/avatar/${req.file.filename}`;
+  } else if (req.body.removeAvatar === "true") {
+    // Case B: User clicked "Remove" (set to null in DB)
+    newAvatarURL = null;
+  } else {
+    // Case C: User did nothing to avatar (undefined = don't update column)
+    newAvatarURL = undefined;
+  }
+  await updateUser({
+    userId: req.user.id,
+    name: data.name,
+    avatarURL: newAvatarURL,
+  });
+
   return res.redirect("/profile");
 };
 

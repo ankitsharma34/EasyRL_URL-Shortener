@@ -339,8 +339,11 @@ export const sendNewVerificationLink = async ({
   }).catch(console.error);
 };
 
-export const updateUserByName = async ({ userId, name }) => {
-  return db.update(usersTable).set({ name }).where(eq(usersTable.id, userId));
+export const updateUser = async ({ userId, name, avatarURL }) => {
+  return db
+    .update(usersTable)
+    .set({ name, avatarURL })
+    .where(eq(usersTable.id, userId));
 };
 
 export const updateUserPassword = async ({ userId, newPassword }) => {
