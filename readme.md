@@ -275,7 +275,7 @@ http://localhost:3000
 
 This project was built by following the amazing tutorial series by **Thapa Technical** on YouTube.
 
-- 🎥 **YouTube Channel:** [Thapa Technical](https://www.youtube.com/@taborethapaTechnical)
+- 🎥 **YouTube Channel:** [Thapa Technical](https://www.youtube.com/@ThapaTechnical)
 - 📺 **Playlist:** [URL Shortener Full Tutorial Series](https://www.youtube.com/playlist?list=PLwGdqUZWnOp3KELplHtc-RnJ5xTUPqdgH)
 
 A huge thanks to **Thapa Technical** for providing such high-quality, free educational content!
